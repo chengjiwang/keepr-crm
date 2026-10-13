@@ -1,0 +1,40 @@
+diff --git a/build/fork/NavigationContainer.js b/build/fork/NavigationContainer.js
+index 3db5ea4f3106bff3b3bd5799e41914be47ae5052..60ea1222a187dd86a786c453fc84bc9fea59ead1 100644
+--- a/build/fork/NavigationContainer.js
++++ b/build/fork/NavigationContainer.js
+@@ -41,11 +41,34 @@ function NavigationContainerInner({ direction = react_native_1.I18nManager.getCo
+     (0, useDocumentTitle_1.useDocumentTitle)(refContainer, documentTitle);
+     (0, imperative_api_1.useImperativeApiEmitter)(refContainer);
+     const [lastUnhandledLink, setLastUnhandledLink] = react_1.default.useState();
++    // [keepr patch] Android 的 getInitialURL 是 async，resolve 時元件可能尚未 commit，
++    // 直接 setState 會觸發 "hasn't mounted yet" 警告。mount 前先暫存，mount 後再套用。
++    // https://github.com/expo/expo/issues/50282
++    const isMountedRef = react_1.default.useRef(false);
++    const pendingUnhandledLinkRef = react_1.default.useRef(null);
++    const setLastUnhandledLinkSafe = react_1.default.useCallback((value) => {
++        if (isMountedRef.current) {
++            setLastUnhandledLink(value);
++        }
++        else {
++            pendingUnhandledLinkRef.current = { value };
++        }
++    }, []);
++    react_1.default.useEffect(() => {
++        isMountedRef.current = true;
++        if (pendingUnhandledLinkRef.current) {
++            setLastUnhandledLink(pendingUnhandledLinkRef.current.value);
++            pendingUnhandledLinkRef.current = null;
++        }
++        return () => {
++            isMountedRef.current = false;
++        };
++    }, []);
+     const { getInitialState } = (0, useLinking_1.useLinking)(refContainer, {
+         enabled: isLinkingEnabled,
+         prefixes: [],
+         ...linking,
+-    }, setLastUnhandledLink);
++    }, setLastUnhandledLinkSafe);
+     const linkingContext = react_1.default.useMemo(() => ({ options: linking }), [linking]);
+     const unhandledLinkingContext = react_1.default.useMemo(() => ({ lastUnhandledLink, setLastUnhandledLink }), [lastUnhandledLink, setLastUnhandledLink]);
+     const onReadyForLinkingHandling = (0, useLatestCallback_1.default)(() => {

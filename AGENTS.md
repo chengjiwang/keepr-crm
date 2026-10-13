@@ -101,3 +101,7 @@ Expo Router、Supabase（Auth / Database / Realtime）、React Query（server st
 - 遇到 RN 與 web 不同的做法（FlatList、worklet、formSheet、平台差異），簡短說明原因
 - 做了非顯而易見的技術決策時，在 `docs/decisions.md` 加一行紀錄
 - 踩到的坑與解法補進本檔案
+
+## 踩過的坑
+
+- **Android 啟動出現 "Can't perform a React state update on a component that hasn't mounted yet"**：expo-router bug（[expo#50282](https://github.com/expo/expo/issues/50282)），Android 的 `getInitialURL()` 為 async，resolve 時 NavigationContainer 尚未 commit 就呼叫 `setLastUnhandledLink`。已用 `patches/expo-router@57.0.26.patch` 修補。升級 expo-router 時 `pnpm install` 若因版本不符報錯，先確認上游是否已修，已修就刪除 patch 與 `pnpm-workspace.yaml` 的 `patchedDependencies`，否則用 `pnpm patch` 對新版本重做。
