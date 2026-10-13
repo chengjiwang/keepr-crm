@@ -42,3 +42,6 @@ example
 /ios
 /android
 /resources
+
+# supabase
+supabase/.temp/
