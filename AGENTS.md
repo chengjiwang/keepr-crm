@@ -88,7 +88,7 @@ Expo Router、Supabase（Auth / Database / Realtime）、React Query（server st
 
 ## UI 規則
 
-- 色彩語意：橘色（`warn`）只代表「待跟進」與「提醒」；綠色（`accent`）只代表「已成交」與「未讀」
+- 色彩語意：橘色（`warn`）只代表「待跟進」與「提醒」；綠色（`accent`）只代表「已成交」與「未讀」；紅色（`danger`）只用於表單錯誤訊息
 - 毛玻璃（expo-blur）**只用在四處**：浮動 Tab Bar、底部面板、詳情頁吸頂標題列、客戶列表搜尋框。內容卡片一律實心。Android 需有半透明實心底色降級
 - 頭像：`getAvatarColor(id)` 回傳靜態陣列 `['bg-avatar-1', …, 'bg-avatar-5']` 其中一項，依 `customers.id` 雜湊，不存 DB。使用者本人頭像用 `accent`
 - 微互動：按壓用 Reanimated `withSpring` 縮放 + haptics；新項目進列表用 `FadeInDown.springify()`
@@ -105,3 +105,4 @@ Expo Router、Supabase（Auth / Database / Realtime）、React Query（server st
 ## 踩過的坑
 
 - **Android 啟動出現 "Can't perform a React state update on a component that hasn't mounted yet"**：expo-router bug（[expo#50282](https://github.com/expo/expo/issues/50282)），Android 的 `getInitialURL()` 為 async，resolve 時 NavigationContainer 尚未 commit 就呼叫 `setLastUnhandledLink`。已用 `patches/expo-router@57.0.26.patch` 修補。升級 expo-router 時 `pnpm install` 若因版本不符報錯，先確認上游是否已修，已修就刪除 patch 與 `pnpm-workspace.yaml` 的 `patchedDependencies`，否則用 `pnpm patch` 對新版本重做。
+- **`SafeAreaView`（react-native-safe-area-context）寫 `className` 無效**：NativeWind v5 底下的 react-native-css 只包裝了 `SafeAreaProvider`，`SafeAreaView` 是原樣 re-export，`className="flex-1"` 被忽略 → 容器高度塌陷，內容往上溢出、文字被壓成 0 高。改用 `View` + `useSafeAreaInsets()` 以 `style` 補 padding。
