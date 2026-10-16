@@ -7,3 +7,4 @@
 - 2026-10-14：`global.css` 加 `:root { font-size: 16px }`。react-native-css 預設 1rem = 14px，會讓 Tailwind 間距／字級比設計稿（web 16px 基準）小約 12%；編譯器會讀 `:root` 的 font-size 作為 rem 內聯值。這與 dark mode 的 `:root` 變數機制無關。
 - 2026-10-16：`getAvatarColor` 用 FNV-1a 32-bit 雜湊 `customers.id` 後取模，從靜態 class 陣列取值（不拼接，避免被 purge）。擴充色數時 `% length` 改變，既有客戶顏色會整批重排一次。
 - 2026-10-16：Supabase 產生的 view 型別全為 nullable；`customer_list_view` 查詢以 `.overrideTypes<CustomerListItem[], { merge: false }>()` 收斂成 `Tables<"customers">` + `last_interaction_*`（仍 nullable），不改 SQL 或產生的型別檔。
+- 2026-10-16：客戶列表用 offset（`.range`）分頁，排序 `created_at desc, id`（id 為 tie-breaker）；兩次載入間有新增時頁首會與上一頁重疊，在 `select` 依 id 去重。下拉刷新用本地 state 控制 `RefreshControl`，不用 `isRefetching`，避免背景 refetch 也出現刷新動畫。

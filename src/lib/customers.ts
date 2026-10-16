@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import type { Database, Enums, Tables } from "@/types/database";
-import { useQuery } from "@tanstack/react-query";
+import { type InfiniteData, useInfiniteQuery } from "@tanstack/react-query";
 
 type ViewRow = Database["public"]["Views"]["customer_list_view"]["Row"];
 
@@ -18,21 +18,47 @@ export const customerKeys = {
   list: (filters: CustomerListFilters) => ["customers", filters] as const,
 };
 
-export async function fetchCustomerList() {
+export const PAGE_SIZE = 20;
+
+// filters 先只進 queryKey；2-3 補 status 的 .eq、2-4 補 search 的 ilike
+export async function fetchCustomerPage({
+  page,
+}: {
+  filters: CustomerListFilters;
+  page: number;
+}) {
+  const from = page * PAGE_SIZE;
   const { data, error } = await supabase
     .from("customer_list_view")
     .select("*")
     .order("created_at", { ascending: false })
-    .order("id")
-    .limit(20)
+    .order("id") // created_at 相同時的 tie-breaker，分頁邊界才穩定
+    .range(from, from + PAGE_SIZE - 1)
     .overrideTypes<CustomerListItem[], { merge: false }>();
   if (error) throw error;
   return data;
 }
 
-export function useCustomerList() {
-  return useQuery({
-    queryKey: customerKeys.list({ status: "all", search: "" }),
-    queryFn: fetchCustomerList,
+// offset 分頁在兩次載入之間若有新增，下一頁開頭會與上一頁重疊，攤平時依 id 去重
+// 放模組層保持參考穩定，select 才不會每次 render 都重算
+function flattenPages(data: InfiniteData<CustomerListItem[], number>) {
+  const seen = new Set<string>();
+  return data.pages.flat().filter((c) => {
+    if (seen.has(c.id)) return false;
+    seen.add(c.id);
+    return true;
+  });
+}
+
+export function useCustomerList(
+  filters: CustomerListFilters = { status: "all", search: "" },
+) {
+  return useInfiniteQuery({
+    queryKey: customerKeys.list(filters),
+    queryFn: ({ pageParam }) => fetchCustomerPage({ filters, page: pageParam }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+      lastPage.length < PAGE_SIZE ? undefined : lastPageParam + 1,
+    select: flattenPages,
   });
 }
