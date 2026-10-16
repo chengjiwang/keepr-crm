@@ -1,0 +1,30 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+/* react-native-css 預設 1rem = 14px；設計稿以 web 的 16px 為基準，統一改成 16 讓間距、字級對齊設計稿 */
+:root {
+  font-size: 16px;
+}
+
+@theme {
+  --color-ink: #14213d;
+  --color-ink-soft: #5b6478;
+  --color-ink-faint: #9aa1b2;
+  --color-accent: #2d6a4f;
+  --color-accent-ink: #1e4b37;
+  --color-accent-soft: #e3efe8;
+  --color-warn: #b8722e;
+  --color-warn-soft: #f6eadc;
+  --color-danger: #b23b3b;
+  --color-surface: #f5f6f3;
+  --color-surface-2: #eef0eb;
+  --color-line: #e6e8e2;
+  --color-avatar-1: #5c6f91;
+  --color-avatar-2: #85708f;
+  --color-avatar-3: #4e7f86;
+  --color-avatar-4: #8a7a68;
+  --color-avatar-5: #6a6fa8;
+}
