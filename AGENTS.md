@@ -83,7 +83,7 @@ Expo Router、Supabase（Auth / Database / Realtime）、React Query（server st
 
 ## 環境變數與安全
 
-- 只用 `EXPO_PUBLIC_SUPABASE_URL` 與 `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+- 只用 `EXPO_PUBLIC_SUPABASE_URL` 與 `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - **service role key 絕不出現在前端程式碼或 repo**；`.env` 不進 git
 
 ## UI 規則
