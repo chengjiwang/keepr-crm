@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { PLACEHOLDER_COLOR } from "@/constants/theme";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { Image } from "expo-image";
@@ -21,9 +22,6 @@ const loginSchema = z.object({
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
-
-// TextInput 的 placeholder 顏色沒有 className 對應，只能用 prop；同 @theme 的 --color-ink-faint
-const PLACEHOLDER_COLOR = "#9aa1b2";
 
 function toErrorMessage(error: Error) {
   if ("code" in error && error.code === "invalid_credentials")
