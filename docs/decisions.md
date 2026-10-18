@@ -9,3 +9,5 @@
 - 2026-10-16：Supabase 產生的 view 型別全為 nullable；`customer_list_view` 查詢以 `.overrideTypes<CustomerListItem[], { merge: false }>()` 收斂成 `Tables<"customers">` + `last_interaction_*`（仍 nullable），不改 SQL 或產生的型別檔。
 - 2026-10-16：客戶列表用 offset（`.range`）分頁，排序 `created_at desc, id`（id 為 tie-breaker）；兩次載入間有新增時頁首會與上一頁重疊，在 `select` 依 id 去重。下拉刷新用本地 state 控制 `RefreshControl`，不用 `isRefetching`，避免背景 refetch 也出現刷新動畫。
 - 2026-10-18：客戶列表篩選 Tab 以 FlatList `key={status}` 重新掛載達成切換後回到頂端（不用 `scrollToOffset`，避免舊列表先跳動再換資料）；status 變更不使用 `placeholderData`，首次載入的 Tab 顯示 loading 而非上一個 Tab 的資料。篩選元件做成客戶列表專用的 `CustomerStatusFilter`，不泛化。
+- 2026-10-18：客戶搜尋用 `.or(name.ilike, company.ilike)`，使用者輸入經兩層跳脫（`src/lib/search.ts`）：先跳 LIKE（`\` → `\\`、`%`/`_` 加 `\`），再整段包 PostgREST 雙引號（引號內跳 `\`、`"`），`, ( ) . :` 因此視為一般字元。PostgREST 會把 ilike 值裡的 `*` 無條件換成 `%` 且無法跳脫，故 `*` 改成單字元萬用字元 `_`。`placeholderData` 只在前一個 queryKey 的 status 相同時回傳舊資料（即只有 search 變動），切 Tab 仍顯示 loading。RN 沒有 compositionend，iOS 注音選字中 `onChangeText` 會收到注音符號，含注音時不更新搜尋值；清空搜尋時跳過 debounce 立即回到快取。
+- 2026-10-18：測試採 jest-expo（`pnpm test`），純函式測試放 `src/**/__tests__/`。

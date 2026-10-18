@@ -106,3 +106,4 @@ Expo Router、Supabase（Auth / Database / Realtime）、React Query（server st
 
 - **Android 啟動出現 "Can't perform a React state update on a component that hasn't mounted yet"**：expo-router bug（[expo#50282](https://github.com/expo/expo/issues/50282)），Android 的 `getInitialURL()` 為 async，resolve 時 NavigationContainer 尚未 commit 就呼叫 `setLastUnhandledLink`。已用 `patches/expo-router@57.0.26.patch` 修補。升級 expo-router 時 `pnpm install` 若因版本不符報錯，先確認上游是否已修，已修就刪除 patch 與 `pnpm-workspace.yaml` 的 `patchedDependencies`，否則用 `pnpm patch` 對新版本重做。
 - **`SafeAreaView`（react-native-safe-area-context）寫 `className` 無效**：NativeWind v5 底下的 react-native-css 只包裝了 `SafeAreaProvider`，`SafeAreaView` 是原樣 re-export，`className="flex-1"` 被忽略 → 容器高度塌陷，內容往上溢出、文字被壓成 0 高。改用 `View` + `useSafeAreaInsets()` 以 `style` 補 padding。
+- **TypeScript 6 測試檔找不到 `describe` / `expect`**：TS 6 預設不再自動載入 `@types/*` 全域型別，`pnpm tsc --noEmit` 會報 TS2593。測試檔開頭加 `/// <reference types="jest" />`（不改 tsconfig 的 `types`，避免影響其他全域型別）。

@@ -1,3 +1,4 @@
+import { buildCustomerSearchFilter } from "@/lib/search";
 import { supabase } from "@/lib/supabase";
 import type { Database, Enums, Tables } from "@/types/database";
 import { type InfiniteData, useInfiniteQuery } from "@tanstack/react-query";
@@ -30,7 +31,6 @@ export const customerKeys = {
 
 export const PAGE_SIZE = 20;
 
-// search 先只進 queryKey；2-4 補 ilike
 export async function fetchCustomerPage({
   filters,
   page,
@@ -41,6 +41,9 @@ export async function fetchCustomerPage({
   const from = page * PAGE_SIZE;
   let query = supabase.from("customer_list_view").select("*");
   if (filters.status !== "all") query = query.eq("status", filters.status);
+  // 與 status 的 eq 是 AND，搜尋結果自然是當前 Tab 的交集
+  if (filters.search)
+    query = query.or(buildCustomerSearchFilter(filters.search));
 
   const { data, error } = await query
     .order("created_at", { ascending: false })
@@ -72,5 +75,10 @@ export function useCustomerList(
     getNextPageParam: (lastPage, _allPages, lastPageParam) =>
       lastPage.length < PAGE_SIZE ? undefined : lastPageParam + 1,
     select: flattenPages,
+    // 只有 search 變動時保留上一次結果避免閃爍；切 status 不保留，新 Tab 首載顯示 loading
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey[1].status === filters.status
+        ? previousData
+        : undefined,
   });
 }
