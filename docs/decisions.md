@@ -8,3 +8,4 @@
 - 2026-10-16：`getAvatarColor` 用 FNV-1a 32-bit 雜湊 `customers.id` 後取模，從靜態 class 陣列取值（不拼接，避免被 purge）。擴充色數時 `% length` 改變，既有客戶顏色會整批重排一次。
 - 2026-10-16：Supabase 產生的 view 型別全為 nullable；`customer_list_view` 查詢以 `.overrideTypes<CustomerListItem[], { merge: false }>()` 收斂成 `Tables<"customers">` + `last_interaction_*`（仍 nullable），不改 SQL 或產生的型別檔。
 - 2026-10-16：客戶列表用 offset（`.range`）分頁，排序 `created_at desc, id`（id 為 tie-breaker）；兩次載入間有新增時頁首會與上一頁重疊，在 `select` 依 id 去重。下拉刷新用本地 state 控制 `RefreshControl`，不用 `isRefetching`，避免背景 refetch 也出現刷新動畫。
+- 2026-10-18：客戶列表篩選 Tab 以 FlatList `key={status}` 重新掛載達成切換後回到頂端（不用 `scrollToOffset`，避免舊列表先跳動再換資料）；status 變更不使用 `placeholderData`，首次載入的 Tab 顯示 loading 而非上一個 Tab 的資料。篩選元件做成客戶列表專用的 `CustomerStatusFilter`，不泛化。

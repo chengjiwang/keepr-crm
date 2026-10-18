@@ -13,6 +13,16 @@ export type CustomerListFilters = {
   search: string;
 };
 
+export const STATUS_FILTERS = [
+  { value: "all", label: "全部" },
+  { value: "new", label: "新客戶" },
+  { value: "following", label: "待跟進" },
+  { value: "won", label: "已成交" },
+] as const satisfies readonly {
+  value: CustomerListFilters["status"];
+  label: string;
+}[];
+
 export const customerKeys = {
   all: ["customers"] as const,
   list: (filters: CustomerListFilters) => ["customers", filters] as const,
@@ -20,17 +30,19 @@ export const customerKeys = {
 
 export const PAGE_SIZE = 20;
 
-// filters 先只進 queryKey；2-3 補 status 的 .eq、2-4 補 search 的 ilike
+// search 先只進 queryKey；2-4 補 ilike
 export async function fetchCustomerPage({
+  filters,
   page,
 }: {
   filters: CustomerListFilters;
   page: number;
 }) {
   const from = page * PAGE_SIZE;
-  const { data, error } = await supabase
-    .from("customer_list_view")
-    .select("*")
+  let query = supabase.from("customer_list_view").select("*");
+  if (filters.status !== "all") query = query.eq("status", filters.status);
+
+  const { data, error } = await query
     .order("created_at", { ascending: false })
     .order("id") // created_at 相同時的 tie-breaker，分頁邊界才穩定
     .range(from, from + PAGE_SIZE - 1)

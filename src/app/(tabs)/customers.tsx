@@ -1,5 +1,6 @@
 import { CustomerRow } from "@/components/CustomerRow";
-import { useCustomerList } from "@/lib/customers";
+import { CustomerStatusFilter } from "@/components/CustomerStatusFilter";
+import { type CustomerListFilters, useCustomerList } from "@/lib/customers";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -12,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CustomersScreen() {
   const insets = useSafeAreaInsets();
+  const [status, setStatus] = useState<CustomerListFilters["status"]>("all");
   const {
     data,
     isPending,
@@ -20,9 +22,15 @@ export default function CustomersScreen() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useCustomerList();
+  } = useCustomerList({ status, search: "" });
   // 只追蹤使用者下拉；isRefetching 在回前景、invalidate 等背景 refetch 也會是 true
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+
+  // 刷新中切 Tab 時一併收起，避免新 Tab 顯示舊 Tab 的刷新動畫
+  const onChangeStatus = (next: CustomerListFilters["status"]) => {
+    setIsPullRefreshing(false);
+    setStatus(next);
+  };
 
   const onRefresh = async () => {
     setIsPullRefreshing(true);
@@ -41,6 +49,7 @@ export default function CustomersScreen() {
   return (
     <View className="flex-1 bg-surface" style={{ paddingTop: insets.top }}>
       <Text className="mt-6 px-6 text-3xl font-bold text-ink">客戶</Text>
+      <CustomerStatusFilter value={status} onChange={onChangeStatus} />
 
       {isPending ? (
         <View className="mt-10">
@@ -52,7 +61,9 @@ export default function CustomersScreen() {
         </Text>
       ) : (
         // FlatList 只掛載可視範圍附近的列並回收，不像 web 一次 map 出整串節點
+        // key 隨 status 變動 → 切 Tab 時重新掛載，捲動位置回到頂端
         <FlatList
+          key={status}
           data={data}
           keyExtractor={(c) => c.id}
           renderItem={({ item }) => <CustomerRow customer={item} />}
