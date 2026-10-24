@@ -10,7 +10,7 @@ export function CustomerRow({ customer }: { customer: CustomerListItem }) {
   return (
     <Pressable
       onPress={() => router.push({ pathname: "/customer/[id]", params: { id: customer.id } })}
-      className="flex-row gap-4 rounded-3xl border border-line bg-white p-4"
+      className="flex-row gap-4 rounded-3xl border border-line bg-white p-4 active:bg-surface-2"
     >
       <Avatar id={customer.id} name={customer.name} size="md" />
 
